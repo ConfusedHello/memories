@@ -62,20 +62,13 @@ export default function Home() {
 	// Handle the transition from loading to gallery
 	useEffect(() => {
 		if (!isLoading && images.length > 0) {
-			// Show gallery container immediately (but with 0 opacity on images)
+			// Show gallery container and start fade immediately
 			setShowGallery(true);
-			// Start fading in the gallery images after a brief delay
-			const fadeTimer = setTimeout(() => {
-				setGalleryOpacity(1);
-			}, 100);
-			return () => clearTimeout(fadeTimer);
+			setGalleryOpacity(1);
 		}
 	}, [isLoading, images.length]);
 
-	// Show loading screen while loading OR during the fade transition
-	const showLoadingScreen = isLoading || loadedCount < totalCount;
-
-	if (showLoadingScreen && !showGallery) {
+	if (!showGallery) {
 		return (
 			<main className="min-h-screen flex items-center justify-center bg-black text-white">
 				<div className="text-center">
@@ -90,7 +83,7 @@ export default function Home() {
 		);
 	}
 
-	if (!showGallery && images.length === 0 && !isLoading) {
+	if (images.length === 0) {
 		return (
 			<main className="min-h-screen flex items-center justify-center bg-black text-white">
 				<div className="text-center">
