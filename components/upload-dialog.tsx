@@ -50,7 +50,7 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
     try {
       // IMG COMPRESSION CONFIG - maintains (most of the) visual quality while reducing file size
       const options = {
-        maxSizeMB: 2, // Maximum file size in MB
+        maxSizeMB: 3.5, // Maximum file size in MB
         maxWidthOrHeight: 2048, // Max dimension
         useWebWorker: true, // Use web worker for better performance
         fileType: "image/webp", // WebP the goat
