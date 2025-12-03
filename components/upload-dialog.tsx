@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useRef } from "react"
 import { X, Upload, Check, Loader2 } from "lucide-react"
 import Image from "next/image"
+import imageCompression from "browser-image-compression"
 import { uploadToDiscord } from "@/app/actions/upload-to-discord"
 
 interface UploadDialogProps {
@@ -44,12 +45,35 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
     }
   }
 
-  const handleFile = (file: File) => {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setPreview(e.target?.result as string)
+  const handleFile = async (file: File) => {
+    try {
+      // IMG COMPRESSION CONFIG - maintains visual quality while reducing file size
+      const options = {
+        maxSizeMB: 5, // Maximum file size in MB
+        maxWidthOrHeight: 4096, // Max dimension
+        useWebWorker: true, // Use web worker for better performance
+        fileType: "image/webp", // WebP the goat
+        initialQuality: 1, // Visual fidelity
+      }
+
+      // Compress the image
+      const compressedFile = await imageCompression(file, options)
+
+      // Convert to base64 for preview and upload
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setPreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(compressedFile)
+    } catch (error) {
+      console.error("Compression error:", error)
+      // Fallback to original file if compression fails
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setPreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
     }
-    reader.readAsDataURL(file)
   }
 
   const handleSubmit = async () => {

@@ -20,6 +20,10 @@ export async function uploadToDiscord(formData: FormData) {
     const base64Data = imageData.split(",")[1]
     const binaryData = Buffer.from(base64Data, "base64")
 
+    // Detect image type from base64 data URI
+    const imageType = imageData.split(";")[0].split(":")[1] || "image/webp"
+    const fileExtension = imageType.split("/")[1] || "webp"
+
     // Create form data for Discord
     const discordFormData = new FormData()
 
@@ -51,9 +55,8 @@ export async function uploadToDiscord(formData: FormData) {
 
     discordFormData.append("payload_json", JSON.stringify(payload))
 
-    // Append the image as a file
-    const blob = new Blob([binaryData], { type: "image/png" })
-    discordFormData.append("files[0]", blob, `graduation-memory-${Date.now()}.png`)
+    const blob = new Blob([binaryData], { type: imageType })
+    discordFormData.append("files[0]", blob, `graduation-memory-${Date.now()}.${fileExtension}`)
 
     const response = await fetch(webhookUrl, {
       method: "POST",
