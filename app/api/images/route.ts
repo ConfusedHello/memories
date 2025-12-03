@@ -10,10 +10,14 @@ const s3Client = new S3Client({
 	},
 });
 
+const buildProxySrc = (key: string) =>
+	`/api/images/proxy?${new URLSearchParams({ key }).toString()}`;
+
 export async function GET() {
 	try {
 		const allImages: {
 			src: string;
+			originSrc: string;
 			alt: string;
 			key: string;
 			size?: number;
@@ -21,7 +25,7 @@ export async function GET() {
 		let continuationToken: string | undefined;
 
 		// Fetch all objects (handles pagination automatically)
-		do {
+			do {
 			const command = new ListObjectsV2Command({
 				Bucket: process.env.R2_BUCKET_NAME,
 				MaxKeys: 1000,
@@ -40,12 +44,16 @@ export async function GET() {
 						key.endsWith('.webp') ||
 						key.endsWith('.gif')
 					);
-				}).map((obj) => ({
-					src: `${process.env.R2_PUBLIC_URL}/${obj.Key}`,
-					alt: obj.Key || '',
-					key: obj.Key!,
-					size: obj.Size,
-				})) || [];
+				}).map((obj) => {
+					const key = obj.Key || '';
+					return {
+						src: buildProxySrc(key),
+						originSrc: `${process.env.R2_PUBLIC_URL}/${key}`,
+						alt: key,
+						key,
+						size: obj.Size,
+					};
+				}) || [];
 
 			allImages.push(...images);
 			continuationToken = response.NextContinuationToken;
