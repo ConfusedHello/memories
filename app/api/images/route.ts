@@ -18,14 +18,14 @@ export async function GET() {
 			key: string;
 			size?: number;
 		}[] = [];
-		let continuationToken: string | undefined;
+		let continuationToken: string | undefined = undefined;
 
 		// Fetch all objects (handles pagination automatically)
 		do {
 			const command = new ListObjectsV2Command({
 				Bucket: process.env.R2_BUCKET_NAME,
 				MaxKeys: 1000,
-				ContinuationToken: continuationToken,
+				...(continuationToken && { ContinuationToken: continuationToken }),
 			});
 
 			const response = await s3Client.send(command);
@@ -41,7 +41,7 @@ export async function GET() {
 						key.endsWith('.gif')
 					);
 				}).map((obj) => ({
-					src: `${process.env.R2_PUBLIC_URL}/${obj.Key}`,
+					src: `/api/images/${encodeURIComponent(obj.Key!)}`,
 					alt: obj.Key || '',
 					key: obj.Key!,
 					size: obj.Size,
