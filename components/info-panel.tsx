@@ -1,6 +1,7 @@
 "use client"
 
 import { X } from "lucide-react"
+import SdcardphotosLogo from "@/components/sdcardphotosLogo"
 
 interface InfoPanelProps {
   open: boolean
@@ -17,7 +18,7 @@ export function InfoPanel({ open, onClose, imageCount = 0 }: InfoPanelProps) {
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
       {/* Panel - slides from left */}
-      <div className="relative bg-background border-r border-border w-full max-w-sm h-full overflow-auto">
+      <div className="relative bg-background border-r border-border w-full max-w-sm h-full overflow-auto flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <span className="text-[11px] uppercase tracking-[0.2em] text-foreground">Info</span>
@@ -27,12 +28,14 @@ export function InfoPanel({ open, onClose, imageCount = 0 }: InfoPanelProps) {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-8">
+        <div className="p-6 space-y-8 flex-1">
           {/* Title */}
           <div>
             <h2 className="text-[11px] uppercase tracking-[0.3em] text-foreground-muted mb-2">Graduation Memories</h2>
             <h3 className="font-serif text-3xl italic text-foreground-bright">Class of 2026</h3>
           </div>
+
+          <div className="border-t border-border" />
 
           {/* Description */}
           <p className="text-[12px] leading-relaxed text-foreground">
@@ -56,7 +59,6 @@ export function InfoPanel({ open, onClose, imageCount = 0 }: InfoPanelProps) {
             </div>
           </div>
 
-          {/* Divider */}
           <div className="border-t border-border" />
 
           {/* Instructions */}
@@ -74,6 +76,18 @@ export function InfoPanel({ open, onClose, imageCount = 0 }: InfoPanelProps) {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Footer with Logo */}
+        <div className="mt-auto border-t border-border p-6">
+          <a
+            href="https://sdcard.photos"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-fit hover:opacity-70 transition-opacity cursor-pointer"
+          >
+            <SdcardphotosLogo className="w-32 h-12"/>
+          </a>
         </div>
       </div>
     </div>
