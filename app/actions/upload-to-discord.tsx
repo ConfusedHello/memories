@@ -9,20 +9,19 @@ export async function uploadToDiscord(formData: FormData) {
 
   const author = formData.get("author") as string
   const caption = formData.get("caption") as string
-  const imageData = formData.get("image") as string
+  const imageFile = formData.get("image") as File
 
-  if (!author || !imageData) {
+  if (!author || !imageFile) {
     return { success: false, error: "Missing required fields" }
   }
 
   try {
-    // Convert base64 to blob for Discord
-    const base64Data = imageData.split(",")[1]
-    const binaryData = Buffer.from(base64Data, "base64")
+    // Get file extension from MIME type
+    const fileExtension = imageFile.type.split("/")[1] || "webp"
 
-    // Detect image type from base64 data URI
-    const imageType = imageData.split(";")[0].split(":")[1] || "image/webp"
-    const fileExtension = imageType.split("/")[1] || "webp"
+    // Convert File to buffer for Discord
+    const arrayBuffer = await imageFile.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
 
     // Create form data for Discord
     const discordFormData = new FormData()
@@ -55,7 +54,7 @@ export async function uploadToDiscord(formData: FormData) {
 
     discordFormData.append("payload_json", JSON.stringify(payload))
 
-    const blob = new Blob([binaryData], { type: imageType })
+    const blob = new Blob([buffer], { type: imageFile.type })
     discordFormData.append("files[0]", blob, `graduation-memory-${Date.now()}.${fileExtension}`)
 
     const response = await fetch(webhookUrl, {
