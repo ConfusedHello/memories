@@ -173,7 +173,7 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
                             ) : (
                                 <div className="relative w-full aspect-video">
                                     <Image
-                                        src={preview || "/placeholder.svg"}
+                                        src={preview}
                                         alt="Preview"
                                         fill
                                         className="object-cover"
