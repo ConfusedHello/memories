@@ -181,7 +181,7 @@ export function UploadDialog({ open, onClose }: UploadDialogProps) {
                                     />
                                     <button
                                         onClick={handleReset}
-                                        className="absolute top-2 right-2 p-1 bg-black/80 text-foreground-bright hover:bg-black"
+                                        className="absolute top-2 right-2 p-1 bg-background/80 backdrop-blur-sm border border-border hover:bg-border/50 transition-colors"
                                     >
                                         <X className="w-4 h-4" />
                                     </button>
