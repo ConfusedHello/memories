@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import InfiniteGallery from "@/components/InfiniteGallery"
-import { BottomNav } from "@/components/bottom-nav"
-import { UploadDialog } from "@/components/upload-dialog"
-import { InfoPanel } from "@/components/info-panel"
-
-type ImageItem = { src: string; alt: string; author?: string }
+import InfiniteGallery from "@/components/gallery/InfiniteGallery"
+import { BottomNav } from "@/components/ui/bottom-nav"
+import { UploadDialog } from "@/components/ui/upload-dialog"
+import { InfoPanel } from "@/components/ui/info-panel"
+import { ImageItem } from "@/types"
 
 function preloadImage(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -31,41 +30,41 @@ export default function Home() {
   const [isGridView, setIsGridView] = useState(false)
 
   useEffect(() => {
-		async function fetchAndPreloadImages() {
-			try {
-				// Fetch image list from API
-				const response = await fetch('/api/images');
-				const data = await response.json();
+    async function fetchAndPreloadImages() {
+      try {
+        // Fetch image list from API
+        const response = await fetch('/api/images');
+        const data = await response.json();
 
-				if (data.images && data.images.length > 0) {
-					const imageList: ImageItem[] = data.images;
-					setTotalCount(imageList.length);
+        if (data.images && data.images.length > 0) {
+          const imageList: ImageItem[] = data.images;
+          setTotalCount(imageList.length);
 
-					// Preload all images
-					let loaded = 0;
-					await Promise.all(
-						imageList.map(async (img) => {
-							try {
-								await preloadImage(img.src);
-							} catch {
-								// Image failed to load, continue anyway
-							}
-							loaded++;
-							setLoadedCount(loaded);
-						})
-					);
+          // Preload all images
+          let loaded = 0;
+          await Promise.all(
+            imageList.map(async (img) => {
+              try {
+                await preloadImage(img.src);
+              } catch {
+                // Image failed to load, continue anyway
+              }
+              loaded++;
+              setLoadedCount(loaded);
+            })
+          );
 
-					setImages(imageList);
-				}
-			} catch (error) {
-				console.error('Failed to fetch images:', error);
-			} finally {
-				setIsLoading(false);
-			}
-		}
+          setImages(imageList);
+        }
+      } catch (error) {
+        console.error('Failed to fetch images:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-		fetchAndPreloadImages();
-	}, []);
+    fetchAndPreloadImages();
+  }, []);
 
   useEffect(() => {
     if (!isLoading && images.length > 0) {
@@ -109,9 +108,8 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-background">
       <div
-        className={`fixed inset-0 z-50 flex items-center justify-center bg-background text-foreground transition-opacity duration-[4000ms] ${
-          galleryOpacity === 1 ? "opacity-0 pointer-events-none" : "opacity-100"
-        }`}
+        className={`fixed inset-0 z-50 flex items-center justify-center bg-background text-foreground transition-opacity duration-[4000ms] ${galleryOpacity === 1 ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
       >
         <div className="text-center">
           <p className="text-[11px] uppercase tracking-[0.3em] text-foreground-muted mb-2">Loading memories...</p>

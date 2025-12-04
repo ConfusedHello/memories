@@ -1,103 +1,37 @@
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-import { NextResponse } from 'next/server';
-import { Readable } from 'stream';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { NextRequest, NextResponse } from 'next/server';
+import { s3Client, R2_BUCKET_NAME } from '@/lib/s3';
 
-const s3Client = new S3Client({
-	region: 'auto',
-	endpoint: process.env.R2_ENDPOINT,
-	credentials: {
-		accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-		secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-	},
-});
+export async function GET(request: NextRequest) {
+    const searchParams = request.nextUrl.searchParams;
+    const key = searchParams.get('key');
 
-const allowedOrigin =
-	process.env.CORS_ALLOWED_ORIGIN || process.env.NEXT_PUBLIC_APP_URL || '*';
+    if (!key) {
+        return new NextResponse('Missing key parameter', { status: 400 });
+    }
 
-const corsHeaders = {
-	'Access-Control-Allow-Origin': allowedOrigin,
-	'Access-Control-Allow-Methods': 'GET, OPTIONS',
-	'Access-Control-Allow-Headers': 'Content-Type',
-};
+    try {
+        const command = new GetObjectCommand({
+            Bucket: R2_BUCKET_NAME,
+            Key: key,
+        });
 
-const buildResponseHeaders = (contentType?: string, contentLength?: number) => {
-	const headers = new Headers({
-		...corsHeaders,
-		'Cache-Control':
-			'public, max-age=0, s-maxage=86400, stale-while-revalidate=43200',
-		'Content-Type': contentType || 'application/octet-stream',
-	});
+        const response = await s3Client.send(command);
 
-	if (typeof contentLength === 'number') {
-		headers.set('Content-Length', contentLength.toString());
-	}
+        if (!response.Body) {
+            return new NextResponse('Image not found', { status: 404 });
+        }
 
-	return headers;
-};
-
-export function OPTIONS() {
-	return new NextResponse(null, {
-		status: 204,
-		headers: corsHeaders,
-	});
-}
-
-export async function GET(request: Request) {
-	const { searchParams } = new URL(request.url);
-	const keyParam = searchParams.get('key');
-
-	if (!keyParam) {
-		return NextResponse.json(
-			{ error: 'Missing "key" query parameter' },
-			{ status: 400, headers: corsHeaders }
-		);
-	}
-
-	const key = decodeURIComponent(keyParam);
-
-	try {
-		const command = new GetObjectCommand({
-			Bucket: process.env.R2_BUCKET_NAME,
-			Key: key,
-		});
-
-		const response = await s3Client.send(command);
-
-		if (!response.Body) {
-			throw new Error('Object body is empty');
-		}
-
-		let bodyStream: ReadableStream<Uint8Array> | undefined;
-
-		if (response.Body instanceof Readable) {
-			bodyStream = Readable.toWeb(response.Body) as ReadableStream<Uint8Array>;
-		} else if (response.Body instanceof Blob) {
-			bodyStream = response.Body.stream();
-		} else {
-			bodyStream = response.Body as ReadableStream<Uint8Array>;
-		}
-
-		const headers = buildResponseHeaders(
-			response.ContentType,
-			response.ContentLength
-		);
-
-		if (response.LastModified) {
-			headers.set('Last-Modified', response.LastModified.toUTCString());
-		}
-
-		return new NextResponse(bodyStream, { status: 200, headers });
-	} catch (error) {
-		console.error('Error proxying image from R2:', error);
-
-		const status = (error as { $metadata?: { httpStatusCode?: number } })
-			?.$metadata?.httpStatusCode;
-
-		const resolvedStatus = status === 404 ? 404 : 500;
-
-		return NextResponse.json(
-			{ error: resolvedStatus === 404 ? 'Image not found' : 'Failed to fetch image' },
-			{ status: resolvedStatus, headers: corsHeaders }
-		);
-	}
+        // Convert the stream to a Web Response
+        // @ts-expect-error - AWS SDK stream type mismatch with Web Response, but it works
+        return new NextResponse(response.Body, {
+            headers: {
+                'Content-Type': response.ContentType || 'image/jpeg',
+                'Cache-Control': 'public, max-age=31536000, immutable',
+            },
+        });
+    } catch (error) {
+        console.error('Error fetching image:', error);
+        return new NextResponse('Failed to fetch image', { status: 500 });
+    }
 }

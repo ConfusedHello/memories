@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "tw-animate-css";
+@plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -83,9 +83,9 @@
   --color-foreground-bright: var(--foreground-bright);
   --color-accent: var(--accent);
   --color-border: var(--border);
-  --font-sans: "JetBrains Mono", monospace;
-  --font-mono: "JetBrains Mono", monospace;
-  --font-serif: Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-mono), "JetBrains Mono", monospace;
+  --font-mono: var(--font-mono), "JetBrains Mono", monospace;
+  --font-serif: var(--font-instrument), Georgia, "Times New Roman", serif;
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -124,6 +124,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
